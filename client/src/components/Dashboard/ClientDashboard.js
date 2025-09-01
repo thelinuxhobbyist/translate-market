@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
-import { Plus, FileText, Users, DollarSign, Clock, CheckCircle } from 'lucide-react';
+import { Plus, FileText, Users, Clock, CheckCircle } from 'lucide-react';
 
 const ClientDashboard = () => {
   const { user } = useAuth();
@@ -15,11 +15,7 @@ const ClientDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
-  const fetchProjects = async () => {
+  const fetchProjects = useCallback(async () => {
     try {
       const response = await api.get('/projects');
       const userProjects = response.data.projects.filter(p => p.client.id === user.id);
@@ -38,7 +34,11 @@ const ClientDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.id]);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const getStatusColor = (status) => {
     switch (status) {

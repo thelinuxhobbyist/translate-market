@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import api from '../../utils/api';
@@ -16,11 +16,7 @@ const FreelancerDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       const [projectsRes, bidsRes] = await Promise.all([
         api.get('/projects?status=POSTED'),
@@ -55,7 +51,11 @@ const FreelancerDashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user.languages]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const getStatusColor = (status) => {
     switch (status) {
