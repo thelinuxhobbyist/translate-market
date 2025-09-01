@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { execSync } = require('child_process');
 
 const prisma = new PrismaClient();
 
@@ -6,12 +7,25 @@ async function setupProduction() {
   try {
     console.log('🔄 Running database migrations...');
     
+    // Run Prisma migrations to create tables
+    try {
+      execSync('npx prisma migrate deploy', { stdio: 'inherit' });
+      console.log('✅ Database migrations completed');
+    } catch (error) {
+      console.log('⚠️ Migration failed, trying to push schema...');
+      execSync('npx prisma db push', { stdio: 'inherit' });
+      console.log('✅ Database schema pushed');
+    }
+    
+    // Generate Prisma client
+    execSync('npx prisma generate', { stdio: 'inherit' });
+    console.log('✅ Prisma client generated');
+    
     // Test database connection
     await prisma.$connect();
     console.log('✅ Database connected successfully');
     
-    // Run migrations (this will create tables if they don't exist)
-    console.log('🔄 Creating database tables...');
+    console.log('🔄 Checking for existing data...');
     
     // Create a test user to verify everything works
     const testUser = await prisma.user.findFirst();
